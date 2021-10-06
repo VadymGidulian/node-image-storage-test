@@ -1,0 +1,42 @@
+{
+	"name":    "@vadym.gidulian/image-storage",
+	"version": "1.0.0",
+	
+	"description": "Image storage: stores, resizes, converts",
+	"keywords": [
+		"convert",
+		"image",
+		"images",
+		"resize",
+		"storage",
+		"thumbnail",
+		"thumbnails"
+	],
+	
+	"main":  "dist/index.ts",
+	"types": "dist/index.d.ts",
+	
+	"scripts": {
+		"build": "tsc",
+		"test":  "jest -i"
+	},
+	
+	"engines": {
+		"node": ">=14"
+	},
+	"os": [
+		"linux"
+	],
+	
+	"dependencies": {
+		"tiny-typed-emitter": "2.1.0",
+		"uuid":               "8.3.2"
+	},
+	"devDependencies": {
+		"@types/node": "14",
+		"@types/uuid": "8.3",
+		"jest":        "27.2",
+		"lodash.omit": "4.5",
+		"typescript":  "4.4"
+	}
+}
