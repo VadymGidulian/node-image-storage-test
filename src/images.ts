@@ -2,7 +2,6 @@ import * as fs         from 'fs/promises';
 import * as path       from 'path';
 import {v4 as uuidv4}  from 'uuid';
 import {TypedEmitter}  from 'tiny-typed-emitter';
-import {Context}       from './context';
 import * as imageUtils from './utils/image';
 import {checkPath}     from './utils/util';
 
@@ -53,17 +52,33 @@ interface ImageStorageEvents {
 	[EVENT.RESIZE_ALL_PROGRESS]: (ev: ResizeAllProgressEvent) => void;
 }
 
+type Thumbnails = imageUtils.ThumbnailDescription[]
+	| ((metadata: imageUtils.ImageMetadata) => imageUtils.ThumbnailDescription[])
+
 /**
  * Storage interface object
  */
 export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 	
-	#context: Context;
+	#path:       string;
+	#thumbnails: Thumbnails;
 	
-	constructor(context: Context) {
+	constructor({path, thumbnails = []}: {
+		/**
+		 * Storage's root path.
+		 */
+		path: string,
+		/**
+		 * Generated thumbnails.
+		 */
+		thumbnails?: Thumbnails
+	}) {
 		super();
 		
-		this.#context = context;
+		if (!path) throw new Error('Path is required');
+		
+		this.#path       = path;
+		this.#thumbnails = thumbnails;
 	}
 	
 	/**
@@ -83,8 +98,8 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 		const metadata: imageUtils.ImageMetadata = await imageUtils.identify(buffer);
 		
 		const fileName:         string = `${uid}.${metadata.format}`;
-		const filePath:         string = getImagePath(        this.#context.config.path, fileName);
-		const metadataFilePath: string = getImageMetadataPath(this.#context.config.path, fileName);
+		const filePath:         string = getImagePath(        this.#path, fileName);
+		const metadataFilePath: string = getImageMetadataPath(this.#path, fileName);
 		const {dir: fileDir}           = path.parse(filePath);
 		
 		await fs.mkdir(fileDir, {recursive: true});
@@ -114,7 +129,7 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 	 */
 	async deleteImage(id: string): Promise<void> {
 		const [name, ext]     = parseId(id);
-		const dirPath: string = path.dirname(getImagePath(this.#context.config.path, id));
+		const dirPath: string = path.dirname(getImagePath(this.#path, id));
 		if (!await checkPath(dirPath)) return;
 		
 		const fileNames: string[] = (await fs.readdir(dirPath))
@@ -130,7 +145,7 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 	 * @return Image's metadata or `null` if the image does not exist.
 	 */
 	async getImageMetadata(id: string): Promise<imageUtils.ImageMetadata | null> {
-		const filePath: string | null = await checkPath(getImageMetadataPath(this.#context.config.path, id));
+		const filePath: string | null = await checkPath(getImageMetadataPath(this.#path, id));
 		if (!filePath) return null;
 		
 		return JSON.parse(await fs.readFile(filePath, 'utf8'));
@@ -144,9 +159,9 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 	 * @return Image's path or `null` if the image does not exist.
 	 */
 	async getImagePath(id: string, size?: string, {force = false}: {force?: boolean} = {}): Promise<string | null> {
-		let filePath: string | null = await checkPath(getImagePath(this.#context.config.path, id, size));
+		let filePath: string | null = await checkPath(getImagePath(this.#path, id, size));
 		if (!filePath && force) {
-			filePath = await checkPath(getImagePath(this.#context.config.path, id));
+			filePath = await checkPath(getImagePath(this.#path, id));
 		}
 		
 		return filePath;
@@ -190,12 +205,12 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 		
 		const resized:     string[] = [];
 		let   errorsCount: number   = 0;
-		const thumbnails:  imageUtils.ThumbnailDescription[] = Array.isArray(this.#context.config.thumbnails)
-			? this.#context.config.thumbnails
-			: this.#context.config.thumbnails((await this.getImageMetadata(id))!);
+		const thumbnails:  imageUtils.ThumbnailDescription[] = Array.isArray(this.#thumbnails)
+			? this.#thumbnails
+			: this.#thumbnails((await this.getImageMetadata(id))!);
 		for (const thumbnailDescription of thumbnails) {
 			try {
-				const destPath: string = getImagePath(this.#context.config.path, id, thumbnailDescription.name);
+				const destPath: string = getImagePath(this.#path, id, thumbnailDescription.name);
 				
 				await imageUtils.resize(srcPath, destPath, thumbnailDescription);
 				resized.push(thumbnailDescription.name);
@@ -216,8 +231,8 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 	async resizeAllImages({clean = false}: {clean?: boolean} = {}): Promise<void> {
 		const ids: string[] = [];
 		
-		for (const hash1 of await fs.readdir(this.#context.config.path)) {
-			const hash1DirPath: string = path.join(this.#context.config.path, hash1);
+		for (const hash1 of await fs.readdir(this.#path)) {
+			const hash1DirPath: string = path.join(this.#path, hash1);
 			
 			for (const hash2 of await fs.readdir(hash1DirPath)) {
 				const hash2DirPath: string = path.join(hash1DirPath, hash2);

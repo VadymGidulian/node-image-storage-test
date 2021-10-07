@@ -4,7 +4,7 @@ const fs   = require('fs');
 const path = require('path');
 const omit = require('lodash.omit');
 
-const {createStorage} = require('../dist');
+const ImageStorage = require('../dist').default;
 
 const PATH = 'images';
 
@@ -28,7 +28,7 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 	
 	describe('Create', () => {
 		test('Create an image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const id = await storage.saveImage(IMAGE);
 			expect(id).toBeTruthy();
@@ -39,13 +39,13 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 		const GLOBALS = {};
 		
 		beforeEach(async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			GLOBALS.imageId = await storage.saveImage(IMAGE);
 		});
 		
 		test('Get an existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const imagePath = await storage.getImagePath(GLOBALS.imageId);
 			expect(imagePath).toBeTruthy();
@@ -55,7 +55,7 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 		});
 		
 		test('Get path of a non-existing image thumbnail', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			expect(await storage.getImagePath(GLOBALS.imageId, '404')).toBeNull();
 			
@@ -67,7 +67,7 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 		});
 		
 		test('Get metadata of an existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			expect(await storage.getImageMetadata(GLOBALS.imageId)).toStrictEqual({
 				format,
@@ -79,13 +79,13 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 		});
 		
 		test('Get path of a non-existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			expect(await storage.getImagePath('404')).toBeNull();
 		});
 		
 		test('Get metadata of a non-existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			expect(await storage.getImageMetadata('404')).toBeNull();
 		});
@@ -95,13 +95,13 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 		const GLOBALS = {};
 		
 		beforeEach(async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			GLOBALS.imageId = await storage.saveImage(IMAGE);
 		});
 		
 		test('Delete an existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const {dir, name} = path.parse(await storage.getImagePath(GLOBALS.imageId));
 			
@@ -114,7 +114,7 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 		});
 		
 		test('Delete a non-existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			await storage.deleteImage('404');
 			
@@ -145,14 +145,14 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 	
 	describe('Create', () => {
 		test('Create an image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const id = await storage.saveImage(IMAGE);
 			expect(id).toBeTruthy();
 		});
 		
 		test('Create an image (async resize)', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const id = await storage.saveImage(IMAGE, {resize: 'async'});
 			expect(id).toBeTruthy();
@@ -169,13 +169,13 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		const GLOBALS = {};
 		
 		beforeEach(async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			GLOBALS.imageId = await storage.saveImage(IMAGE);
 		});
 		
 		test('Get an existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const imagePath = await storage.getImagePath(GLOBALS.imageId);
 			expect(imagePath).toBeTruthy();
@@ -185,7 +185,7 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		});
 		
 		test('Get an existing image thumbnail', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const imagePath = await storage.getImagePath(GLOBALS.imageId);
 			
@@ -197,7 +197,7 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		});
 		
 		test('Get metadata of an existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			expect(await storage.getImageMetadata(GLOBALS.imageId)).toStrictEqual({
 				format,
@@ -231,7 +231,7 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		};
 
 		test('Create an image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 
 			const id = await storage.saveImage(IMAGE);
 			expect(id).toBeTruthy();
@@ -261,13 +261,13 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		const GLOBALS = {};
 		
 		beforeEach(async () => {
-			const storage = createStorage(OLD_CONFIG);
+			const storage = new ImageStorage(OLD_CONFIG);
 			
 			GLOBALS.imageId = await storage.saveImage(IMAGE);
 		});
 		
 		test('Resize', async () => {
-			const storage = createStorage(NEW_CONFIG);
+			const storage = new ImageStorage(NEW_CONFIG);
 			
 			const oldMetadata = await storage.getImageMetadata(GLOBALS.imageId);
 			expect(oldMetadata).toBeTruthy();
@@ -287,7 +287,7 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		});
 		
 		test('Clean and resize', async () => {
-			const storage = createStorage(NEW_CONFIG);
+			const storage = new ImageStorage(NEW_CONFIG);
 			
 			const oldMetadata = await storage.getImageMetadata(GLOBALS.imageId);
 			expect(oldMetadata).toBeTruthy();
@@ -311,13 +311,13 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		const GLOBALS = {};
 		
 		beforeEach(async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			GLOBALS.imageId = await storage.saveImage(IMAGE);
 		});
 		
 		test('Delete an existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const {dir, name} = path.parse(await storage.getImagePath(GLOBALS.imageId));
 			
@@ -336,7 +336,7 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 		});
 		
 		test('Delete a non-existing image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			await storage.deleteImage('404');
 			
@@ -360,13 +360,13 @@ describe('Convert', () => {
 		const GLOBALS = {};
 		
 		beforeEach(async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			GLOBALS.imageId = await storage.saveImage(IMAGE_FROM);
 		});
 		
 		test.each(IMAGES_DATA)('to `%s`', async (_, toFormat, toMediaType) => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			const id = await storage.convertImage(GLOBALS.imageId, toFormat);
 			expect(id).toBeTruthy();
@@ -397,14 +397,14 @@ describe('Convert', () => {
 		const GLOBALS = {};
 		
 		beforeEach(async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			GLOBALS.imageId    = await storage.saveImage(IMAGE);
 			GLOBALS.newImageId = await storage.convertImage(GLOBALS.imageId, IMAGES_DATA[1][1]);
 		});
 		
 		test('Delete old image', async () => {
-			const storage = createStorage(CONFIG);
+			const storage = new ImageStorage(CONFIG);
 			
 			expect(await storage.getImagePath(GLOBALS.imageId)).toBeTruthy();
 			expect(await storage.getImagePath(GLOBALS.newImageId)).toBeTruthy();
@@ -439,7 +439,7 @@ describe('Resize all', () => {
 	};
 	
 	beforeEach(async () => {
-		const storage = createStorage(OLD_CONFIG);
+		const storage = new ImageStorage(OLD_CONFIG);
 		
 		GLOBALS.imageIds.length = 0;
 		for (const [name] of IMAGES_DATA) {
@@ -449,7 +449,7 @@ describe('Resize all', () => {
 	});
 	
 	test('Resize all', async () => {
-		const storage = createStorage(NEW_CONFIG);
+		const storage = new ImageStorage(NEW_CONFIG);
 		
 		const oldMetadatas      = [];
 		const oldThumbnailPaths = [];
@@ -481,7 +481,7 @@ describe('Resize all', () => {
 	});
 	
 	test('Clean and resize all', async () => {
-		const storage = createStorage(NEW_CONFIG);
+		const storage = new ImageStorage(NEW_CONFIG);
 		
 		const oldMetadatas      = [];
 		const oldThumbnailPaths = [];
