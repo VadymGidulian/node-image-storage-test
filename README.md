@@ -17,6 +17,8 @@ This module is designed to be a simple and easily configurable image storage sol
 
 ## 📝 Usage
 
+System requirements: /etc/mime.types, file, imagemagick
+
 ```js
 const {createStorage} = require('@vadym.gidulian/image-storage');
 
