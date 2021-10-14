@@ -92,7 +92,13 @@ const thumbnailPath = await storage.getImagePath(imageId, 'md');
 // 'path/to/storage/d/ef/01234567-89ab-cdef-0123-456789abcdef.md.jpeg'
 const thumbnailPath = await storage.getImagePath(imageId, 'xs');
 // null
-const thumbnailPath = await storage.getImagePath(imageId, 'xs', {force: true});
+const thumbnailPath = await storage.getImagePath(imageId, 'xs', {fallback: 'sm'});
+// 'path/to/storage/d/ef/01234567-89ab-cdef-0123-456789abcdef.sm.jpeg'
+// or
+const thumbnailPath = await storage.getImagePath(imageId, 'xs', {fallback: ['sm', 'md']});
+// 'path/to/storage/d/ef/01234567-89ab-cdef-0123-456789abcdef.sm.jpeg'
+// or
+const thumbnailPath = await storage.getImagePath(imageId, 'xs', {fallback: true});
 // 'path/to/storage/d/ef/01234567-89ab-cdef-0123-456789abcdef.jpeg'
 
 
@@ -100,7 +106,7 @@ const thumbnailPath = await storage.getImagePath(imageId, 'xs', {force: true});
 const newImageId = await storage.convertImage(imageId, 'webp');
 // or
 const newImageId = await storage.convertImage(imageId, 'webp', {resize: ...});
-// `01234567-89ab-cdef-0123-456789abcdef.webp`
+// '01234567-89ab-cdef-0123-456789abcdef.webp'
 
 
 // Regenerate image's thumbnails

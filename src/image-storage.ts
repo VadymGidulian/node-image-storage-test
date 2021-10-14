@@ -52,8 +52,16 @@ interface ImageStorageEvents {
 	[EVENT.RESIZE_ALL_PROGRESS]: (ev: ResizeAllProgressEvent) => void;
 }
 
-type Thumbnails = imageUtils.ThumbnailDescription[]
-	| ((metadata: imageUtils.ImageMetadata) => imageUtils.ThumbnailDescription[])
+
+export interface ThumbnailDescription extends imageUtils.ResizeOptions {
+	/**
+	 * Thumbnail name.
+	 */
+	name: string;
+}
+
+type Thumbnails = ThumbnailDescription[]
+	| ((metadata: imageUtils.ImageMetadata) => ThumbnailDescription[]);
 
 /**
  * Storage interface object
@@ -153,18 +161,30 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 	
 	/**
 	 * Gets image's path.
-	 * @param id    - Image's id.
-	 * @param size  - Thumbnail name.
-	 * @param force - Return path to the original image, if the specified thumbnail does not exist.
+	 * @param id        - Image's id.
+	 * @param thumbnail - Thumbnail name.
+	 * @param fallback  - Alternative(s) to look for, if the specified thumbnail does not exist. `true` - for original image.
 	 * @return Image's path or `null` if the image does not exist.
 	 */
-	async getImagePath(id: string, size?: string, {force = false}: {force?: boolean} = {}): Promise<string | null> {
-		let filePath: string | null = await checkPath(getImagePath(this.#path, id, size));
-		if (!filePath && force) {
-			filePath = await checkPath(getImagePath(this.#path, id));
+	async getImagePath(
+		id:         string,
+		thumbnail?: string,
+		{fallback = []}: {
+			fallback?: true | string | Array<true | string>
+		} = {}
+	): Promise<string | null> {
+		const thumbnailNames: Array<string | undefined> = [
+			thumbnail,
+			...(!Array.isArray(fallback) ? [fallback] : fallback)
+				.map(f => (f === true) ? undefined : f)
+		];
+		
+		for (const thumbnailName of thumbnailNames) {
+			const filePath: string | null = await checkPath(getImagePath(this.#path, id, thumbnailName));
+			if (filePath) return filePath;
 		}
 		
-		return filePath;
+		return null;
 	}
 	
 	/**
@@ -205,7 +225,7 @@ export default class ImageStorage extends TypedEmitter<ImageStorageEvents> {
 		
 		const resized:     string[] = [];
 		let   errorsCount: number   = 0;
-		const thumbnails:  imageUtils.ThumbnailDescription[] = Array.isArray(this.#thumbnails)
+		const thumbnails:  ThumbnailDescription[] = Array.isArray(this.#thumbnails)
 			? this.#thumbnails
 			: this.#thumbnails((await this.getImageMetadata(id))!);
 		for (const thumbnailDescription of thumbnails) {
@@ -276,10 +296,10 @@ function getImageMetadataPath(root: string, id: string): string {
 	return path.join(root, ...hash, fileName);
 }
 
-function getImagePath(root: string, id: string, size?: string): string {
+function getImagePath(root: string, id: string, thumbnail?: string): string {
 	const [name, ext]        = parseId(id);
 	const hash:     string[] = getHash(id);
-	const fileName: string   = [name, size, ext].filter(Boolean).join('.');
+	const fileName: string   = [name, thumbnail, ext].filter(Boolean).join('.');
 	
 	return path.join(root, ...hash, fileName);
 }

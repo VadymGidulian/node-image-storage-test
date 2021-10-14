@@ -39,11 +39,7 @@ export interface ImageMetadata {
 	height: number;
 }
 
-export interface ThumbnailDescription {
-	/**
-	 * Thumbnail name.
-	 */
-	name: string;
+export interface ResizeOptions {
 	/**
 	 * Image geometry.
 	 *
@@ -139,7 +135,7 @@ export async function identify(file: Buffer | string): Promise<ImageMetadata> {
 export async function resize(
 	srcPath:                     string,
 	destPath:                    string,
-	{size, progressive = false}: ThumbnailDescription
+	{size, progressive = false}: ResizeOptions
 ): Promise<void> {
 	const {stderr} = await execFile('convert', [
 		srcPath,

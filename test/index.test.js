@@ -62,7 +62,7 @@ describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
 			{
 				const imagePath = await storage.getImagePath(GLOBALS.imageId);
 				expect(imagePath).toBeTruthy();
-				expect(await storage.getImagePath(GLOBALS.imageId, '404', {force: true})).toBe(imagePath);
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: true})).toBe(imagePath);
 			}
 		});
 		
@@ -193,7 +193,7 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 			expect(thumbnailPath).toBeTruthy();
 			expect(thumbnailPath).not.toBe(imagePath);
 			
-			expect(await storage.getImagePath(GLOBALS.imageId, CONFIG.thumbnails[0].name, {force: true})).toBe(thumbnailPath);
+			expect(await storage.getImagePath(GLOBALS.imageId, CONFIG.thumbnails[0].name, {fallback: true})).toBe(thumbnailPath);
 		});
 		
 		test('Get metadata of an existing image', async () => {
@@ -206,6 +206,40 @@ describe.each(IMAGES_DATA)('`%s` with thumbnails', (fileName, format, mediaType)
 				width:  512,
 				height: 512
 			});
+		});
+		
+		test('Get a non-existing image thumbnail', async () => {
+			const storage = new ImageStorage(CONFIG);
+			
+			{
+				expect(await storage.getImagePath(GLOBALS.imageId, '404')).toBeNull();
+			}
+			
+			{
+				const imagePath = await storage.getImagePath(GLOBALS.imageId);
+				expect(imagePath).toBeTruthy();
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: true})).toBe(imagePath);
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: [true]})).toBe(imagePath);
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: ['not-found', true]})).toBe(imagePath);
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: ['not-found', true, CONFIG.thumbnails[0].name]})).toBe(imagePath);
+			}
+			
+			{
+				const fallbackThumbnailPath = await storage.getImagePath(GLOBALS.imageId, CONFIG.thumbnails[0].name);
+				expect(fallbackThumbnailPath).toBeTruthy();
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: CONFIG.thumbnails[0].name})).toBe(fallbackThumbnailPath);
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: [CONFIG.thumbnails[0].name]})).toBe(fallbackThumbnailPath);
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: ['not-found', CONFIG.thumbnails[0].name]})).toBe(fallbackThumbnailPath);
+				
+				expect(await storage.getImagePath(GLOBALS.imageId, '404', {fallback: ['not-found', CONFIG.thumbnails[0].name, true]})).toBe(fallbackThumbnailPath);
+			}
 		});
 	});
 	

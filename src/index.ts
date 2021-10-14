@@ -1,3 +1,3 @@
-export {default}                             from './images';
-export *                                     from './utils/errors';
-export {ImageMetadata, ThumbnailDescription} from './utils/image';
+export {default, ThumbnailDescription} from './image-storage';
+export *                               from './utils/errors';
+export {ImageMetadata}                 from './utils/image';
