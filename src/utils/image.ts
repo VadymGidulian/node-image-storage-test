@@ -68,7 +68,7 @@ const MEDIA_TYPES: Record<string, string[]> = {
 export async function convert(srcPath: string, format: string): Promise<Buffer> {
 	const tempFilePath: string = path.join(os.tmpdir(), uuidv4());
 	try {
-		await execFile('convert', [srcPath, `${format}:${tempFilePath}`], {encoding: 'buffer'});
+		await execFile('convert', [`${srcPath}[0]`, `${format}:${tempFilePath}`], {encoding: 'buffer'});
 		return await fs.promises.readFile(tempFilePath);
 	} finally {
 		await fs.promises.rm(tempFilePath, {force: true});
@@ -79,11 +79,11 @@ async function getDimensions(file: Buffer | string): Promise<{width: number, hei
 	const isBuffer = Buffer.isBuffer(file);
 	const filePath = isBuffer ? '-' : file;
 	
-	const promise = execFile('identify', ['-format', '%wx%h', filePath]);
+	const promise = execFile('identify', ['-format', '%wx%h ', filePath]);
 	if (isBuffer) promise.child.stdin!.end(file);
 	
 	const {stdout, stderr} = await promise;
-	const dimensions = /^(\d+)x(\d+)$/.exec(stdout);
+	const dimensions = /^(\d+)x(\d+)/.exec(stdout);
 	if (!dimensions) throw new ImageProcessingError(`Can't determine image dimensions${stderr ? `: ${stderr}` : ''}`);
 	
 	const [, width, height] = dimensions as unknown as [string, string, string];

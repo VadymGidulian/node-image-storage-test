@@ -151,3 +151,9 @@ storage.on('resizeAllProgress', ({
 await storage.deleteImage(imageId);
 ```
 ¹ [Image geometry](https://imagemagick.org/script/command-line-processing.php#geometry)
+
+### Caveats
+
+#### Animated images
+
+It can't convert between animated image formats: only the first frame is extracted and converted.

@@ -9,12 +9,13 @@ const ImageStorage = require('../dist').default;
 const PATH = 'images';
 
 const IMAGES_DATA = [
-	['lenna.bmp',  'bmp',  'image/x-ms-bmp'],
-	['lenna.gif',  'gif',  'image/gif'],
-	['lenna.jpg',  'jpeg', 'image/jpeg'],
-	['lenna.png',  'png',  'image/png'],
-	['lenna.tif',  'tiff', 'image/tiff'],
-	['lenna.webp', 'webp', 'image/webp']
+	['lenna.bmp',          'bmp',  'image/x-ms-bmp'],
+	['lenna.gif',          'gif',  'image/gif'],
+	['lenna-animated.gif', 'gif',  'image/gif'],
+	['lenna.jpg',          'jpeg', 'image/jpeg'],
+	['lenna.png',          'png',  'image/png'],
+	['lenna.tif',          'tiff', 'image/tiff'],
+	['lenna.webp',         'webp', 'image/webp']
 ];
 
 describe.each(IMAGES_DATA)('`%s`', (fileName, format, mediaType) => {
@@ -399,7 +400,9 @@ describe('Convert', () => {
 			GLOBALS.imageId = await storage.saveImage(IMAGE_FROM);
 		});
 		
-		test.each(IMAGES_DATA)('to `%s`', async (_, toFormat, toMediaType) => {
+		test.each(
+			IMAGES_DATA.filter(([name]) => /^lenna\.[a-z]+$/.test(name))
+		)('to `%s`', async (_, toFormat, toMediaType) => {
 			const storage = new ImageStorage(CONFIG);
 			
 			const id = await storage.convertImage(GLOBALS.imageId, toFormat);
